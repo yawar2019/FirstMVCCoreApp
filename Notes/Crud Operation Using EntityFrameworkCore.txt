@@ -1,0 +1,114 @@
+﻿ Code First approach using Entityframework Core
+
+
+1)EntityFramework Core
+2)Repository Pattern
+3)DependencyInjection
+
+step1
+Installing Dependencyis (version:5.0.2)
+Microsoft.EntityFrameworkCore
+Microsoft.EntityFrameworkCore.SqlServer
+Microsoft.EntityFrameworkCore.Tools
+
+step 2
+Create Model Class and Make sure you should have primary key
+
+  public class EmployeeModels
+    {
+        [Key]
+        public int EmpId { get; set; }
+        public string EmpName { get; set; }
+        public int EmpSalary { get; set; }
+    }
+
+step3
+Create Context Class
+
+using Microsoft.EntityFrameworkCore;
+ namespace _10pmMvcbatch3.Models
+{
+    public class EmployeeDetContext:DbContext
+    {
+        public EmployeeDetContext(DbContextOptions<EmployeeDetContext> options):base(options)
+        {
+        }
+        public DbSet<EmployeeModels> employeeModels { get; set; }
+    }
+}
+
+
+step4:
+Add in Appsettting.json
+
+"ConnectionStrings": {
+    "SqlCon": "Data Source=AZAM-PC\\SQLEXPRESS;Initial Catalog=EmployeeShruti;Integrated Security=true"
+  }
+
+step5:
+Create One Folder Repository and Add below files
+Interface---IEmployeeRepository
+
+ public interface IEmployeeRepository
+    {
+        public List<EmployeeModels> GetEmployees();
+    }
+
+
+
+class---EmployeeRepository
+
+ public class EmployeeRepository : IEmployeeRepository
+    {
+        public EmployeeDetContext _employeeContext;
+        public EmployeeRepository(EmployeeDetContext employeeContext)
+        {
+            _employeeContext = employeeContext;
+        }
+        public List<EmployeeModels> GetEmployees()
+        {
+            return _employeeContext.employeeModels.ToList();
+        }
+    }
+
+
+step6:
+Create Controller EmployeesController in Controller Folder
+
+ public class EmployeesController : Controller
+    {
+        public IEmployeeRepository _employeeRepository;
+        public EmployeesController(IEmployeeRepository employeeRepository)
+        {
+            _employeeRepository = employeeRepository;
+        }
+        public IActionResult Index()
+        {
+            return View(_employeeRepository.GetEmployees());
+        }
+    }
+
+step7:
+Go to Startup Class and Add the Below Code
+
+ public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddControllersWithViews();
+            var connectionstring = Configuration.GetConnectionString("SqlCon");
+            services.AddDbContext<EmployeeDetContext>(options => options.UseSqlServer(connectionstring));
+            services.AddTransient<IEmployeeRepository, EmployeeRepository>();
+        }
+
+step8:
+Type Migration Commands
+Enable-Migrations
+Add-Migration AddedDb
+Update-Database
+
+step9:
+Add View
+
+Step10 : execute application add some dummy data to table 
+
+
+
